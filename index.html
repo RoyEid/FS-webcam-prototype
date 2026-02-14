@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <title>Webcam Interaction Prototype</title>
 
-  <!-- Mobile: true fullscreen + safe area -->
+  <!-- Mobile: fullscreen + safe area -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 
   <link rel="icon" href="data:,">
@@ -15,8 +15,9 @@
       --pad: 14px;
       --radius: 14px;
       --glass: rgba(0, 0, 0, 0.45);
-      --text: rgba(255, 255, 255, 0.92);
-      --muted: rgba(255, 255, 255, 0.78);
+      --glass2: rgba(0, 0, 0, 0.62);
+      --txt: rgba(255, 255, 255, 0.92);
+      --txt2: rgba(255, 255, 255, 0.78);
     }
 
     html,
@@ -26,60 +27,81 @@
       background: #000;
       overflow: hidden;
       height: 100%;
-      width: 100%;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Use safe-area insets on phones with notch */
+    /* Keep canvas full screen */
+    canvas {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
     #ui {
       position: fixed;
-      left: calc(12px + env(safe-area-inset-left));
-      top: calc(12px + env(safe-area-inset-top));
-      right: calc(12px + env(safe-area-inset-right));
-      max-width: 720px;
-
-      color: var(--text);
+      color: var(--txt);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
       background: var(--glass);
-      padding: 12px 12px;
-      border-radius: var(--radius);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      padding: 12px 14px;
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      max-width: min(640px, calc(100vw - 32px));
       user-select: none;
       z-index: 10;
+
+      /* safe area for notches */
+      top: calc(16px + env(safe-area-inset-top));
+      left: calc(16px + env(safe-area-inset-left));
+      right: auto;
+
+      /* IMPORTANT: allow internal scroll if needed */
+      max-height: calc(100vh - 32px - env(safe-area-inset-top));
+      overflow: auto;
       box-sizing: border-box;
     }
 
-    #title {
-      font-weight: 800;
-      font-size: 14px;
-      letter-spacing: 0.2px;
+    /* Header with minimize */
+    #uiHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    #desc {
-      margin-top: 4px;
-      font-size: 12px;
-      opacity: 0.9;
-      line-height: 1.3;
+    #minBtn {
+      appearance: none;
+      border: 0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--txt);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #minBtn:active {
+      transform: translateY(1px);
+    }
+
+    #uiBody {
+      margin-top: 10px;
     }
 
     #row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
       margin-top: 10px;
       flex-wrap: wrap;
     }
 
-    #row span {
-      font-size: 12px;
-      opacity: 0.95;
-    }
-
     input[type="range"] {
-      width: 240px;
-      max-width: 100%;
+      width: 230px;
     }
 
     #btnRow {
@@ -89,23 +111,22 @@
       flex-wrap: wrap;
     }
 
-    button {
+    button.uiBtn {
       appearance: none;
       border: 0;
-      padding: 10px 12px;
-      border-radius: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.92);
-      font-weight: 700;
+      color: var(--txt);
+      font-weight: 600;
       cursor: pointer;
-      font-size: 12px;
-      line-height: 1;
-      min-height: 40px;
-      min-width: 120px;
-      touch-action: manipulation;
     }
 
-    button:active {
+    button.uiBtn:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    button.uiBtn:active {
       transform: translateY(1px);
     }
 
@@ -113,50 +134,66 @@
       background: rgba(255, 80, 80, 0.22);
     }
 
-    #sndBtn[data-on="1"] {
-      background: rgba(120, 220, 255, 0.18);
-    }
-
-    #micBtn[data-on="1"] {
-      background: rgba(120, 255, 120, 0.18);
-    }
-
     .tiny {
-      opacity: var(--muted);
-      font-size: 11px;
-      margin-top: 8px;
+      opacity: 0.78;
+      font-size: 12px;
+      margin-top: 10px;
       line-height: 1.35;
+      color: var(--txt2);
     }
 
-    /* PHONE MODE: compact UI */
-    @media (max-width: 520px) {
+    /* Collapsed UI: keep header only */
+    #ui.collapsed {
+      background: var(--glass2);
+      padding: 10px 12px;
+      max-height: none;
+      overflow: hidden;
+      width: min(360px, calc(100vw - 32px));
+    }
+
+    #ui.collapsed #uiBody {
+      display: none;
+    }
+
+    /* ---------------- MOBILE RESPONSIVE FIX (KEEP EVERYTHING) ---------------- */
+    @media (max-width: 480px) {
       #ui {
+        left: calc(10px + env(safe-area-inset-left));
+        right: calc(10px + env(safe-area-inset-right));
+        top: calc(10px + env(safe-area-inset-top));
         max-width: none;
-        padding: 12px 12px;
-      }
 
-      #title {
-        font-size: 15px;
-      }
+        /* KEY: menu uses limited height so camera stays visible */
+        max-height: 42vh;
+        /* camera keeps ~58% visible */
+        overflow: auto;
 
-      #desc {
-        font-size: 12px;
+        padding: 10px 10px;
+        border-radius: 14px;
+        font-size: 13px;
       }
 
       input[type="range"] {
-        width: 100%;
+        width: 60vw;
+        max-width: 260px;
       }
 
-      button {
-        min-width: 0;
-        flex: 1 1 auto;
-        padding: 12px 12px;
-        font-size: 12px;
-        min-height: 44px;
+      /* buttons become 2 columns but KEEP ALL buttons */
+      #btnRow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
 
-      #btnRow button {
-        flex: 1 1 calc(50% - 10px);
+      button.uiBtn {
+        padding: 10px 10px;
+        font-size: 13px;
+      }
+
+      /* KEEP instructions, but slightly smaller */
+      .tiny {
+        display: block;
+        font-size: 11px;
       }
     }
   </style>
@@ -164,28 +201,39 @@
 
 <body>
   <div id="ui">
-    <div id="title">Webcam Interaction Prototype</div>
-    <div id="desc">Move in front of the camera to generate particles & reveal a pattern.</div>
-
-    <div id="row">
-      <span>Sensitivity</span>
-      <input id="sens" type="range" min="10" max="80" value="35" />
-      <span id="sensVal">35</span>
+    <div id="uiHeader">
+      <div>
+        <b>Webcam Interaction Prototype</b>
+      </div>
+      <button id="minBtn" type="button">Minimize</button>
     </div>
 
-    <div id="btnRow">
-      <button id="calBtn" type="button">Calibrate (C)</button>
-      <button id="recBtn" type="button" data-rec="0">Start Recording (P)</button>
-      <button id="vidBtn" type="button">Toggle Video (V)</button>
-      <button id="rstBtn" type="button">Reset (R)</button>
-      <button id="sndBtn" type="button" data-on="1">Sound: ON (S)</button>
-      <button id="micBtn" type="button" data-on="0">Mic: OFF (M)</button>
-    </div>
+    <div id="uiBody">
+      <div style="margin-top:6px;">
+        Move in front of the camera to generate particles & reveal a pattern.
+      </div>
 
-    <div class="tiny">
-      Keys: <b>H</b> help • <b>V</b> video • <b>R</b> reset • <b>C</b> calibrate • <b>P</b> record • <b>S</b> sound •
-      <b>M</b> mic<br>
-      Phone: tap once anywhere to unlock audio. Allow mic permission when asked.
+      <div id="row">
+        <span>Sensitivity</span>
+        <input id="sens" type="range" min="10" max="80" value="35" />
+        <span id="sensVal">35</span>
+      </div>
+
+      <div id="btnRow">
+        <button class="uiBtn" id="calBtn" type="button">Calibrate (C)</button>
+        <button class="uiBtn" id="recBtn" type="button" data-rec="0">Start Recording (P)</button>
+        <button class="uiBtn" id="vidBtn" type="button">Toggle Video (V)</button>
+        <button class="uiBtn" id="rstBtn" type="button">Reset Particles (R)</button>
+        <button class="uiBtn" id="sndBtn" type="button">Sound: ON (S)</button>
+        <button class="uiBtn" id="micBtn" type="button">Mic: OFF (M)</button>
+      </div>
+
+      <div class="tiny">
+        Keys: <b>H</b> help • <b>V</b> video • <b>R</b> reset • <b>C</b> calibrate • <b>P</b> record • <b>S</b> sound •
+        <b>M</b> mic<br>
+        Phone: Tap once anywhere to unlock audio. Allow mic permission when asked.<br>
+        Tip: If menu blocks the camera, tap <b>Minimize</b>.
+      </div>
     </div>
   </div>
 
@@ -195,53 +243,67 @@
   <script>
     function refreshButtons() {
       const recBtn = document.getElementById("recBtn");
-      recBtn.dataset.rec = window.isRecording ? "1" : "0";
-      recBtn.textContent = window.isRecording ? "Stop Recording (P)" : "Start Recording (P)";
-
-      const sndBtn = document.getElementById("sndBtn");
-      sndBtn.dataset.on = window.soundEnabled ? "1" : "0";
-      sndBtn.textContent = window.soundEnabled ? "Sound: ON (S)" : "Sound: OFF (S)";
-
-      const micBtn = document.getElementById("micBtn");
-      micBtn.dataset.on = window.micEnabled ? "1" : "0";
-      micBtn.textContent = window.micEnabled ? "Mic: ON (M)" : "Mic: OFF (M)";
+      if (typeof isRecording !== "undefined") {
+        recBtn.dataset.rec = isRecording ? "1" : "0";
+        recBtn.textContent = isRecording ? "Stop Recording (P)" : "Start Recording (P)";
+      }
+      if (typeof soundEnabled !== "undefined") {
+        document.getElementById("sndBtn").textContent = soundEnabled ? "Sound: ON (S)" : "Sound: OFF (S)";
+      }
+      if (typeof micEnabled !== "undefined") {
+        document.getElementById("micBtn").textContent = micEnabled ? "Mic: ON (M)" : "Mic: OFF (M)";
+      }
     }
 
     document.getElementById("calBtn").addEventListener("click", () => {
-      window.calibrateBackground?.();
+      if (typeof calibrateBackground === "function") calibrateBackground();
     });
 
     document.getElementById("recBtn").addEventListener("click", async () => {
-      await window.toggleRecording?.();
+      if (typeof toggleRecording === "function") await toggleRecording();
       refreshButtons();
     });
 
     document.getElementById("vidBtn").addEventListener("click", () => {
-      if (typeof window.showVideo !== "undefined") window.showVideo = !window.showVideo;
+      if (typeof showVideo !== "undefined") showVideo = !showVideo;
     });
 
     document.getElementById("rstBtn").addEventListener("click", () => {
-      if (typeof window.particles !== "undefined") window.particles = [];
+      if (typeof particles !== "undefined") particles = [];
     });
 
     document.getElementById("sndBtn").addEventListener("click", () => {
-      window.toggleSound?.();
+      if (typeof toggleSound === "function") toggleSound();
       refreshButtons();
     });
 
     document.getElementById("micBtn").addEventListener("click", async () => {
-      await window.toggleMic?.();
+      if (typeof toggleMic === "function") await toggleMic();
       refreshButtons();
     });
 
-    // iOS/Safari needs a user gesture to start audio
-    const unlock = () => {
-      window.unlockAudio?.();
-      refreshButtons();
-    };
+    // Minimize UI so camera becomes visible
+    const ui = document.getElementById("ui");
+    const minBtn = document.getElementById("minBtn");
 
-    window.addEventListener("pointerdown", unlock, { once: true });
-    window.addEventListener("touchstart", unlock, { once: true });
+    function setCollapsed(v) {
+      ui.classList.toggle("collapsed", v);
+      minBtn.textContent = v ? "Expand" : "Minimize";
+    }
+
+    minBtn.addEventListener("click", () => {
+      setCollapsed(!ui.classList.contains("collapsed"));
+    });
+
+    // Auto-collapse on small phones (best UX)
+    if (window.matchMedia("(max-width: 480px)").matches) {
+      setCollapsed(true);
+    }
+
+    // Unlock audio on first tap (mobile browser requirement)
+    window.addEventListener("pointerdown", () => {
+      if (typeof unlockAudio === "function") unlockAudio();
+    }, { once: true });
   </script>
 </body>
 
