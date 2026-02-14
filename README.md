@@ -1,8 +1,12 @@
 # FS Webcam Prototype (Part 3) — Webcam Interaction (p5.js)
 
 A motion-driven webcam interaction prototype built with **p5.js**.  
-Your movement in front of the camera generates particles, reveals a ring pattern, and can drive an audio layer.  
-Includes optional recording (canvas + generated audio + optional microphone).
+Move in front of the camera to generate particles, reveal a ring pattern, and drive an optional audio layer. Includes optional recording (canvas + generated audio + optional microphone).
+
+## Live Demo
+✅ https://royeid.github.io/FS-webcam-prototype/
+
+> **Mobile note:** allow **Camera** permission when prompted. Tap once anywhere to unlock audio (browser requirement).
 
 ---
 
@@ -14,10 +18,9 @@ This repository contains **Part 3** of the Flying Submarine evaluation task:
 > When a person stands in front of the webcam, their movement affects the environment (particles / distortion / color changes / hidden visuals revealed).
 
 ### What this prototype does
-
 - **Motion detection** drives **glowing particle generation**
 - Motion reveals a **hidden visual pattern** (concentric rings)
-- A minimal UI controls **sensitivity** and key actions
+- Minimal UI controls **sensitivity** and key actions
 - Optional **audio feedback** reacts to motion (rhythm + pitch)
 - Optional **recording** captures the canvas + audio (and mic if enabled)
 
@@ -25,32 +28,46 @@ This repository contains **Part 3** of the Flying Submarine evaluation task:
 
 ## Features
 
-### Webcam Motion Detection
+### Webcam motion detection
 - Background model with **calibration** + **slow adaptation** (reduces noise/flicker)
 - Stable **motion energy** output (0–100%)
 - Tracks the **motion centroid** (where movement is happening)
 
-### Visual Response
+### Visual response
 - Motion spawns **glow particles**
-- Rings appear stronger as motion increases
+- Rings intensify as motion increases
 - Fullscreen “cover” webcam layout (desktop + mobile responsive)
 
-### Audio Response (Optional)
+### Audio response (optional)
 - Motion energy → **tick rhythm**
 - Motion speed → **pitch**
 - Strong motion adds subtle **whoosh** texture
 
-### Recording (Optional)
+### Recording (optional)
 - Records to **`.webm`** (best supported in Chrome / Android)
-- Includes **generated sound**
+- Includes **generated audio**
 - Includes **microphone** if enabled (permission required)
 
 ---
 
-## Project Structure
+## Controls
 
+### UI Buttons
+- **Calibrate (C)** — capture the background model (best when the scene is still)
+- **Start/Stop Recording (P)** — records canvas + audio
+- **Toggle Video (V)** — show/hide webcam feed
+- **Reset Particles (R)** — clears current particles
+- **Sound ON/OFF (S)** — toggles generated audio
+- **Mic ON/OFF (M)** — toggles microphone input in recording
+
+### Keyboard shortcuts
+`H` help • `V` video • `R` reset • `C` calibrate • `P` record • `S` sound • `M` mic
+
+---
+
+## Project Structure
 - `index.html` — UI + loads p5.js + connects buttons to the sketch
-- `sketch.js` — webcam capture, motion detection, visuals, audio, recording logic
+- `sketch.js` — webcam capture, motion detection, visuals, audio, recording
 
 ---
 
