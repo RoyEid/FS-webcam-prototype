@@ -165,8 +165,9 @@ function draw() {
     const sy = cover.y + (motionCy + jy) * cover.s;
     window.particles.push(new Particle(sx, sy, motionEnergy));
   }
-  if (window.particles.length > 1400)
+  if (window.particles.length > 1400) {
     window.particles.splice(0, window.particles.length - 1400);
+  }
 
   drawParticles();
 
@@ -320,24 +321,33 @@ function drawRevealPattern(t, cx, cy) {
   pop();
 }
 
+/**
+ * HUD (Motion text)
+ * FIX: on small screens, browser bars cover the bottom, so we push the HUD upward.
+ */
 function drawHUD(t, activePct) {
+  const isSmall = windowWidth <= 480;
+
   fill(255, 220);
   noStroke();
-  textSize(14);
+  textSize(isSmall ? 16 : 14);
   textAlign(LEFT, BOTTOM);
 
   const pct = (t * 100).toFixed(0);
   const ap = (activePct * 100).toFixed(2);
 
+  // On phones, keep HUD away from the bottom browser UI
+  const bottomPad = isSmall ? 64 : 14;
+
   text(
     `Motion: ${pct}% • ActivePx: ${ap}% • Particles: ${window.particles.length}`,
     16,
-    height - 14
+    height - bottomPad
   );
 
   if (window.isRecording) {
     fill(255, 80, 80);
-    text("REC ●", width - 80, height - 14);
+    text("REC ●", width - 80, height - bottomPad);
   }
 }
 
