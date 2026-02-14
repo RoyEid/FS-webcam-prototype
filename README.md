@@ -1,64 +1,63 @@
-# Flying Submarine – AI Intern Evaluation (Part 3)
+# FS Webcam Prototype (Part 3) — Webcam Interaction (p5.js)
 
-## Webcam Interaction Prototype (p5.js)
+A motion-driven webcam interaction prototype built with **p5.js**.  
+Your movement in front of the camera generates particles, reveals a ring pattern, and can drive an audio layer.  
+Includes optional recording (canvas + generated audio + optional microphone).
+
+---
+
+## Overview
 
 This repository contains **Part 3** of the Flying Submarine evaluation task:
 
-> **Create a basic interactive visual using a webcam.**  
+> Build a basic interactive visual using a webcam.  
 > When a person stands in front of the webcam, their movement affects the environment (particles / distortion / color changes / hidden visuals revealed).
 
-My prototype creates a **clean, modern “immersive room” effect**:
+### What this prototype does
 
-- **Motion detection** (webcam) drives **particle generation**
-- Motion reveals a **hidden visual pattern** (concentric “brand rings”)
-- A minimal UI panel controls sensitivity and key actions
-- Optional: **sound layer** reacts to motion (motion → rhythm & pitch)
-- Optional: **recording** captures the canvas (and sound, and mic if enabled)
+- **Motion detection** drives **glowing particle generation**
+- Motion reveals a **hidden visual pattern** (concentric rings)
+- A minimal UI controls **sensitivity** and key actions
+- Optional **audio feedback** reacts to motion (rhythm + pitch)
+- Optional **recording** captures the canvas + audio (and mic if enabled)
 
 ---
 
 ## Features
 
-- **Webcam motion detection**
+### Webcam Motion Detection
+- Background model with **calibration** + **slow adaptation** (reduces noise/flicker)
+- Stable **motion energy** output (0–100%)
+- Tracks the **motion centroid** (where movement is happening)
 
-  - Uses a background model (calibration + slow adaptation) to reduce noise
-  - Outputs a stable **motion energy value** (0–100%)
-  - Tracks the **motion centroid** (where movement is happening)
+### Visual Response
+- Motion spawns **glow particles**
+- Rings appear stronger as motion increases
+- Fullscreen “cover” webcam layout (desktop + mobile responsive)
 
-- **Visual response**
+### Audio Response (Optional)
+- Motion energy → **tick rhythm**
+- Motion speed → **pitch**
+- Strong motion adds subtle **whoosh** texture
 
-  - Motion spawns **glowing particles**
-  - Motion strength reveals **a hidden pattern** around the centroid
-  - Fullscreen “cover” video layout (responsive desktop + mobile)
-
-- **Audio response (optional)**
-
-  - Motion energy controls **tick rhythm**
-  - Motion speed controls **pitch**
-  - Strong motion adds a subtle **whoosh** layer
-
-- **Recording (optional)**
-  - Records the canvas into a `.webm` file (best supported on Android/Chrome)
-  - Includes generated sound
-  - Includes mic audio if **Mic ON** (permission required)
+### Recording (Optional)
+- Records to **`.webm`** (best supported in Chrome / Android)
+- Includes **generated sound**
+- Includes **microphone** if enabled (permission required)
 
 ---
 
-## Project Files
+## Project Structure
 
-- `index.html` – UI layout + buttons + loads p5.js + sketch
-- `sketch.js` – webcam capture, motion detection, visuals, audio, recording
+- `index.html` — UI + loads p5.js + connects buttons to the sketch
+- `sketch.js` — webcam capture, motion detection, visuals, audio, recording logic
 
 ---
 
-## How to Run (Recommended)
+## Run Locally
 
-Webcam access usually requires running a local server (not `file://`).
+Webcam access requires a server (not `file://`).
 
-### Option A: Python Local Server
-
-1. Open a terminal inside the project folder
-2. Run:
-   ```bash
-   python -m http.server 8000
-   ```
+### Option A — Python server
+```bash
+python -m http.server 8000
