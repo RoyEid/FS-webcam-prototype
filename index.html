@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Webcam Interaction Prototype</title>
+
+  <!-- Mobile: true fullscreen + safe area -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root {
+      --pad: 14px;
+      --radius: 14px;
+      --glass: rgba(0, 0, 0, 0.45);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.78);
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Use safe-area insets on phones with notch */
+    #ui {
+      position: fixed;
+      left: calc(12px + env(safe-area-inset-left));
+      top: calc(12px + env(safe-area-inset-top));
+      right: calc(12px + env(safe-area-inset-right));
+      max-width: 720px;
+
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--glass);
+      padding: 12px 12px;
+      border-radius: var(--radius);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      user-select: none;
+      z-index: 10;
+      box-sizing: border-box;
+    }
+
+    #title {
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    #desc {
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+
+    #row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    #row span {
+      font-size: 12px;
+      opacity: 0.95;
+    }
+
+    input[type="range"] {
+      width: 240px;
+      max-width: 100%;
+    }
+
+    #btnRow {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.92);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      min-height: 40px;
+      min-width: 120px;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    #recBtn[data-rec="1"] {
+      background: rgba(255, 80, 80, 0.22);
+    }
+
+    #sndBtn[data-on="1"] {
+      background: rgba(120, 220, 255, 0.18);
+    }
+
+    #micBtn[data-on="1"] {
+      background: rgba(120, 255, 120, 0.18);
+    }
+
+    .tiny {
+      opacity: var(--muted);
+      font-size: 11px;
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+
+    /* PHONE MODE: compact UI */
+    @media (max-width: 520px) {
+      #ui {
+        max-width: none;
+        padding: 12px 12px;
+      }
+
+      #title {
+        font-size: 15px;
+      }
+
+      #desc {
+        font-size: 12px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      button {
+        min-width: 0;
+        flex: 1 1 auto;
+        padding: 12px 12px;
+        font-size: 12px;
+        min-height: 44px;
+      }
+
+      #btnRow button {
+        flex: 1 1 calc(50% - 10px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="ui">
+    <div id="title">Webcam Interaction Prototype</div>
+    <div id="desc">Move in front of the camera to generate particles & reveal a pattern.</div>
+
+    <div id="row">
+      <span>Sensitivity</span>
+      <input id="sens" type="range" min="10" max="80" value="35" />
+      <span id="sensVal">35</span>
+    </div>
+
+    <div id="btnRow">
+      <button id="calBtn" type="button">Calibrate (C)</button>
+      <button id="recBtn" type="button" data-rec="0">Start Recording (P)</button>
+      <button id="vidBtn" type="button">Toggle Video (V)</button>
+      <button id="rstBtn" type="button">Reset (R)</button>
+      <button id="sndBtn" type="button" data-on="1">Sound: ON (S)</button>
+      <button id="micBtn" type="button" data-on="0">Mic: OFF (M)</button>
+    </div>
+
+    <div class="tiny">
+      Keys: <b>H</b> help • <b>V</b> video • <b>R</b> reset • <b>C</b> calibrate • <b>P</b> record • <b>S</b> sound •
+      <b>M</b> mic<br>
+      Phone: tap once anywhere to unlock audio. Allow mic permission when asked.
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <script src="sketch.js"></script>
+
+  <script>
+    function refreshButtons() {
+      const recBtn = document.getElementById("recBtn");
+      recBtn.dataset.rec = window.isRecording ? "1" : "0";
+      recBtn.textContent = window.isRecording ? "Stop Recording (P)" : "Start Recording (P)";
+
+      const sndBtn = document.getElementById("sndBtn");
+      sndBtn.dataset.on = window.soundEnabled ? "1" : "0";
+      sndBtn.textContent = window.soundEnabled ? "Sound: ON (S)" : "Sound: OFF (S)";
+
+      const micBtn = document.getElementById("micBtn");
+      micBtn.dataset.on = window.micEnabled ? "1" : "0";
+      micBtn.textContent = window.micEnabled ? "Mic: ON (M)" : "Mic: OFF (M)";
+    }
+
+    document.getElementById("calBtn").addEventListener("click", () => {
+      window.calibrateBackground?.();
+    });
+
+    document.getElementById("recBtn").addEventListener("click", async () => {
+      await window.toggleRecording?.();
+      refreshButtons();
+    });
+
+    document.getElementById("vidBtn").addEventListener("click", () => {
+      if (typeof window.showVideo !== "undefined") window.showVideo = !window.showVideo;
+    });
+
+    document.getElementById("rstBtn").addEventListener("click", () => {
+      if (typeof window.particles !== "undefined") window.particles = [];
+    });
+
+    document.getElementById("sndBtn").addEventListener("click", () => {
+      window.toggleSound?.();
+      refreshButtons();
+    });
+
+    document.getElementById("micBtn").addEventListener("click", async () => {
+      await window.toggleMic?.();
+      refreshButtons();
+    });
+
+    // iOS/Safari needs a user gesture to start audio
+    const unlock = () => {
+      window.unlockAudio?.();
+      refreshButtons();
+    };
+
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("touchstart", unlock, { once: true });
+  </script>
+</body>
+
+</html>
